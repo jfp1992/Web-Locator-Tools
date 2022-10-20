@@ -1,0 +1,6 @@
+# JetBrains IDE
+.idea/
+venv/
+build/
+/main.spec
+/dist/main.exe
