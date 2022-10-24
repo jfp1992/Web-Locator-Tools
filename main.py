@@ -225,17 +225,17 @@ while True:
 
             if locator_type == "css":
                 if attribute == "class":
-                    print(f"self.page.locator(\".{value.replace(' ', '.')}\")\n")
+                    print(f"self.page.locator(\".{value.replace(' ', '.')}\")")
                     print(f".{value.replace(' ', '.')}\n")
                 elif attribute == "id":
-                    print(f"self.page.locator(\"#{value}\")\n")
+                    print(f"self.page.locator(\"#{value}\")")
                     print(f"#{value}\n")
                 else:
-                    print(f"self.page.locator(Css(\"{tag}\", \"{attribute}\", \"{value}\").absolute())\n")
+                    print(f"self.page.locator(Css(\"{tag}\", \"{attribute}\", \"{value}\").absolute())")
                     print(Css(tag, attribute, value).absolute() + "\n")
             else:
-                print(f"self.page.locator(Xpath(\"{tag}\", \"{attribute}\", \"{value}\").absolute())\n")
-                print(Xpath(tag, attribute, value).absolute())
+                print(f"self.page.locator(Xpath(\"{tag}\", \"{attribute}\", \"{value}\").absolute())")
+                print(Xpath(tag, attribute, value).absolute() + "\n")
 
     elif choice == "4":
         if locator_type == "css":
