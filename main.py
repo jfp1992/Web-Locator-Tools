@@ -199,8 +199,6 @@ while True:
         printout_element_code(locator_code, code_end=f").fill()")
 
     elif choice == "3":
-        input("Copy HTML tag then press enter")
-
         root = Tk()
         root.withdraw()
         html = root.clipboard_get()
@@ -210,7 +208,7 @@ while True:
         try:
             strip_leading_lessthan = html.split("<")[1]
         except IndexError:
-            print("Error while trying to process paste data, please try copying again.")
+            print("Error while trying to process paste data, please try copying html again.")
             continue
         html_parts = strip_leading_lessthan.split('" ')
         tag = html_parts[0].split(" ")[0]
