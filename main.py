@@ -140,8 +140,8 @@ else:
 
 while True:
     print("\nPlease choose one:")
-    print("1. Simple xpath.")
-    print("2. Complex xpath (includes relative, such as child).")
+    print(f"1. Simple {locator_type}.")
+    print(f"2. Complex {locator_type} (includes relative, such as child).")
     if locator_type == "css":
         print("3. Auto css")
         print("4. Switch locator type to xpath")
@@ -154,10 +154,8 @@ while True:
     if choice == "1":
         simple_locator = LocatorBuilder(locator_type)
         simple_locator.get_user_start_input()
-        print(simple_locator.start_locator_text())
-        print()
-        print(simple_locator.start_locator_code())
-        print()
+        print(simple_locator.start_locator_text() + "\n")
+        print(simple_locator.start_locator_code() + "\n")
         print(f"self.page.locator({simple_locator.start_locator_code()}).click()")
         print(f"self.page.locator({simple_locator.start_locator_code()}).fill()")
 
