@@ -73,12 +73,15 @@ class Css:
             combinator = ""
 
         if self.att == "class" and self.rel is not None:
-            return combinator + "." + self.val.replace(" ", ".")
+            if value_modifier == "":
+                return combinator + "." + self.val.replace(" ", ".")
         elif self.att == "class" and self.rel is None:
-            return "." + self.val.replace(" ", ".")
+            if value_modifier == "":
+                return "." + self.val.replace(" ", ".")
 
         if self.att == "id":
-            return combinator + "#" + self.val
+            if value_modifier == "":
+                return combinator + "#" + self.val
 
         if self.att == "text":
             if value_modifier == "":
