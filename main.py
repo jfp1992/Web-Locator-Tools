@@ -1,244 +1,142 @@
-from tkinter import Tk
-
-from support_functions import UserInput
-from locators import Css, Xpath
-
-
-class LocatorBuilder:
-    def __init__(self, locator_type):
-        if locator_type == "xpath":
-            self.locator_type_class = Xpath
-            self.locator_type_text = "Xpath"
-        elif locator_type == "css":
-            self.locator_type_class = Css
-            self.locator_type_text = "Css"
-
-        self.tag = None
-        self.attribute = None
-        self.value = None
-        self.relative = None
-        self.modifier = None
-
-        self.map_relatives = {
-            "child": " > ",
-            "descendant": " > ",
-            "self": " >> ",
-            None: ""
-        }
-
-    def get_user_start_input(self):
-        self.tag = UserInput().tag_choice()
-        self.attribute = UserInput().attribute_choice()
-        self.value = UserInput().value_choice()
-        self.modifier = UserInput().modifier_choice()
-
-    def convert_class_id(self):
-        if locator_type == "css":
-            if self.attribute == "class":
-                return self.map_relatives[self.relative] + "." + self.value.replace(" ", ".")
-            elif self.attribute == "id":
-                return self.map_relatives[self.relative] + "#" + self.value
-
-    def start_locator_text(self):
-        code_start = self.locator_type_class(self.tag, self.attribute, self.value)
-
-        if self.attribute == ("class" or "id"):
-            return self.convert_class_id()
-
-        if self.modifier == "1" or self.modifier == "":
-            return code_start.absolute()
-        elif self.modifier == "2":
-            return code_start.starts_with()
-        elif self.modifier == "3":
-            return code_start.ends_with()
-        elif self.modifier == "4":
-            return code_start.contains()
-        return "Invalid modifier option, please start again."
-
-    def start_locator_code(self):
-        code_start = f"{self.locator_type_text}('{self.tag}', '{self.attribute}', '{self.value}')"
-
-        if self.attribute == ("class" or "id"):
-            return self.convert_class_id()
-
-        if self.modifier == "1" or self.modifier == "":
-            return f"{code_start}.absolute()"
-        elif self.modifier == "2":
-            return f"{code_start}.starts_with()"
-        elif self.modifier == "3":
-            return f"{code_start}.ends_with()"
-        elif self.modifier == "4":
-            return f"{code_start}.contains()"
-        return "Invalid modifier option, please start again."
-
-    def get_user_chain_input(self):
-        self.tag = UserInput().tag_choice()
-        self.attribute = UserInput().attribute_choice()
-        self.value = UserInput().value_choice()
-        self.relative = UserInput().relative_choice()
-        self.modifier = UserInput().modifier_choice()
-
-    def chain_locator_text(self):
-        code_start = self.locator_type_class(self.tag, self.attribute, self.value, self.relative)
-
-        if self.attribute == ("class" or "id"):
-            return self.convert_class_id()
-
-        if self.modifier == "1" or self.modifier == "":
-            return code_start.absolute()
-        elif self.modifier == "2":
-            return code_start.starts_with()
-        elif self.modifier == "3":
-            return code_start.ends_with()
-        elif self.modifier == "4":
-            return code_start.contains()
-        return "Invalid modifier option, please start again."
-
-    def chain_locator_code(self):
-        code_start = f"{self.locator_type_text}('{self.tag}', '{self.attribute}', '{self.value}', '{self.relative}')"
-
-        if self.attribute == ("class" or "id"):
-            return self.convert_class_id()
-
-        if self.modifier == "1" or self.modifier == "":
-            return f"{code_start}.absolute()"
-        elif self.modifier == "2":
-            return f"{code_start}.starts_with()"
-        elif self.modifier == "3":
-            return f"{code_start}.ends_with()"
-        elif self.modifier == "4":
-            return f"{code_start}.contains()"
-        return "Invalid modifier option, please start again."
+import tkinter as tk
+import pyperclip
+from bs4 import BeautifulSoup
 
 
-def printout_element_code(chains, title=None, code_end=None):
-    if title:
-        print("\n")
-        print(title)
-    if code_end is None:
-        print(starter.start_locator_code())
-    else:
-        print(f"self.page.locator({starter.start_locator_code()}", end="")
-        for chain in chains:
-            if locator_type == "css":
-                print(f" +\n                 {chain}", end="")
-            else:
-                print(f" +\n        {chain}", end="")
-        print(code_end)
+class LocatorGUI:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Locator Generator")
+        self.root.geometry("800x240")  # Set default window size
 
+        self.label = tk.Label(root, text="Clipboard HTML Locators:")
+        self.label.pack()
 
-print("\nPlease choose one:")
-print("1. Css")
-print("2. Xpath")
+        self.canvas = tk.Canvas(root)
+        self.scroll_y = tk.Scrollbar(root, orient="vertical", command=self.canvas.yview)
+        self.scroll_frame = tk.Frame(self.canvas)
 
-locator_type = input()
-if locator_type == "1":
-    locator_type = "css"
-else:
-    locator_type = "xpath"
+        self.scroll_frame.bind(
+            "<Configure>", lambda e: self.canvas.configure(
+                scrollregion=self.canvas.bbox("all")
+            )
+        )
 
+        self.canvas.create_window((0, 0), window=self.scroll_frame, anchor="nw")
+        self.canvas.configure(yscrollcommand=self.scroll_y.set)
 
-while True:
-    print("\nPlease choose one:")
-    print(f"1. Simple {locator_type}.")
-    print(f"2. Complex {locator_type} (includes relative, such as child).")
-    if locator_type == "css":
-        print("3. Auto css")
-        print("4. Switch locator type to xpath")
-    else:
-        print("3. Auto xpaths")
-        print("4. Switch locator type to css")
+        self.canvas.pack(side="left", fill="both", expand=True)
+        self.scroll_y.pack(side="right", fill="y")
 
-    choice = input()
+        self.pause_button = tk.Button(root, text="Pause", command=self.toggle_pause)
+        self.pause_button.pack()
 
-    if choice == "1":
-        simple_locator = LocatorBuilder(locator_type)
-        simple_locator.get_user_start_input()
-        print(simple_locator.start_locator_text() + "\n")
-        print(simple_locator.start_locator_code() + "\n")
-        print(f"self.page.locator({simple_locator.start_locator_code()}).click()")
-        print(f"self.page.locator({simple_locator.start_locator_code()}).fill()")
+        self.is_paused = False
 
-    elif choice == "2":
-        starter = LocatorBuilder(locator_type)
-        starter.get_user_start_input()
-        locator_text = []
-        locator_code = []
-        while True:
-            chainer = LocatorBuilder(locator_type)
-            chainer.get_user_chain_input()
-            locator_text.append(chainer.chain_locator_text())
-            locator_code.append(chainer.chain_locator_code())
-            while True:
-                try:
-                    print("Another chain?: ")
-                    print("1: Yes")
-                    print("2: No")
-                    additional_chain = input()
-                    if additional_chain == "1" or additional_chain == "2" or additional_chain == "":
-                        break
+        self.priority_attributes = ["for", "data-test-id", "data-testid", "id", "name", "title", "aria-label",
+                                    "placeholder", "value", "data-cy", "class"]
+
+        self.recent_clipboard = ""
+        self.poll_clipboard()
+
+    def toggle_pause(self):
+        self.is_paused = not self.is_paused
+        self.pause_button.config(text="Resume" if self.is_paused else "Pause")
+
+    def poll_clipboard(self):
+        if not self.is_paused:
+            html = pyperclip.paste()
+            if html and html != self.recent_clipboard and self.is_valid_html(html):
+                self.recent_clipboard = html
+                self.generate_locators(html)
+        self.root.after(100, self.poll_clipboard)
+
+    def is_valid_html(self, html):
+        return html.strip().startswith("<") and html.strip().endswith(">") and '"' in html
+
+    def generate_locators(self, html):
+        soup = BeautifulSoup(html, "html.parser")
+        tag = soup.find(True)
+        if not tag:
+            return
+
+        for widget in self.scroll_frame.winfo_children():
+            widget.destroy()
+
+        tag_name = tag.name
+        attributes = tag.attrs
+
+        main_locator = None
+        locators = []
+        extra_locators = []
+
+        used_attrs = set()
+
+        for attr in self.priority_attributes:
+            if attr in attributes:
+                used_attrs.add(attr)
+                value = attributes[attr]
+                if isinstance(value, list):
+                    value = " ".join(value)
+
+                if attr == "id":
+                    if "." in value:
+                        locator = f'page.locator("{tag_name}[id={repr(value)}]")'
                     else:
-                        print("Incorrect value passed, please choose 1 or 2")
-                        continue
-                except ValueError:
-                    print("Incorrect value passed, please choose 1 or 2")
-                    continue
-            if additional_chain == "1" or additional_chain == "":
-                continue
-            elif additional_chain == "2":
-                break
-        print()
-        print("Locator text:")
-        print(starter.start_locator_text(), end="")
-        for i in locator_text:
-            print(i, end="")
-
-        print()
-        printout_element_code(locator_code, "Locator code:")
-        printout_element_code(locator_code, "Presence of element:", f").click()")
-        printout_element_code(locator_code, code_end=f").fill()")
-
-    elif choice == "3":
-        root = Tk()
-        root.withdraw()
-        html = root.clipboard_get()
-
-        html = html.split(">")[0]
-
-        try:
-            strip_leading_lessthan = html.split("<")[1]
-        except IndexError:
-            print("Error while trying to process paste data, please try copying html again.")
-            continue
-        html_parts = strip_leading_lessthan.split('" ')
-        tag = html_parts[0].split(" ")[0]
-
-        get_tag = False
-
-        for attribute_pair in html_parts:
-            if tag in attribute_pair and not get_tag:
-                attribute = attribute_pair.split(" ")[1].split("=")[0]
-                get_tag = True
-            else:
-                attribute = attribute_pair.split("=")[0]
-            value = attribute_pair.split("=")[1].replace('"', "")
-
-            if locator_type == "css":
-                if attribute == "class":
-                    print(f"self.page.locator(\".{value.replace(' ', '.')}\")")
-                    print(f"tag.{value.replace(' ', '.')}\n")
-                elif attribute == "id":
-                    print(f"self.page.locator(\"#{value}\")")
-                    print(f"tag#{value}\n")
+                        locator = f'page.locator("{tag_name}#{value}")'
+                elif attr == "class":
+                    locator = f'page.locator("{tag_name}.' + ".".join(value.split()) + '")'
                 else:
-                    print(Css(tag, attribute, value).absolute() + "\n")
-            else:
-                print(Xpath(tag, attribute, value).absolute() + "\n")
+                    locator = f'page.locator("{tag_name}[{attr}={repr(value)}]")'
 
-    elif choice == "4":
-        if locator_type == "css":
-            locator_type = "xpath"
-            print("Switched to xpath\n")
-        else:
-            locator_type = "css"
-            print("Switched to css\n")
+                if not main_locator:
+                    main_locator = locator
+                else:
+                    extra_locators.append(locator)
+
+        remaining_attrs = [attr for attr in attributes if attr not in used_attrs]
+
+        for attr in remaining_attrs:
+            value = attributes[attr]
+            if isinstance(value, list):
+                value = " ".join(value)
+            if value == "":
+                locator = f'page.locator("{tag_name}[{attr}]")'
+            else:
+                locator = f'page.locator("{tag_name}[{attr}={repr(value)}]")'
+            extra_locators.append(locator)
+
+        if not attributes:
+            main_locator = f'page.locator("{tag_name}")'
+            locators.append(main_locator)
+
+        locators.append(main_locator)
+        locators.extend(extra_locators)
+
+        if main_locator:
+            pyperclip.copy(main_locator)
+            self.add_locator_to_ui(main_locator, copied=True)
+
+        for locator in locators:
+            if locator != main_locator:
+                self.add_locator_to_ui(locator)
+
+    def add_locator_to_ui(self, locator, copied=False):
+        frame = tk.Frame(self.scroll_frame)
+        frame.pack(fill=tk.X, padx=5, pady=2, anchor="w")
+
+        label_text = locator + ("  (Copied)" if copied else "")
+        label = tk.Label(frame, text=label_text, anchor="w", justify="left", wraplength=600)
+        label.pack(side=tk.LEFT, fill=tk.X, expand=True)
+
+        copy_button = tk.Button(frame, text="Copy", command=lambda: self.copy_to_clipboard(locator))
+        copy_button.pack(side=tk.RIGHT)
+
+    def copy_to_clipboard(self, text):
+        pyperclip.copy(text)
+
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = LocatorGUI(root)
+    root.mainloop()
