@@ -4,7 +4,7 @@
 * Copy html blocks to display locators, locators are copied in priority order
 * If copied locator is bad, click the copy button on another locator
 
-Main.py can be edited to change the priority order
+> Main.py can be edited to change the priority order
 
 ## FAQ
 * How do I copy html while the app is running?
